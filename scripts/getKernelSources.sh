@@ -92,7 +92,7 @@ fi
 apt-add-repository universe
 apt-get update
 apt-get install pkg-config -y
-apt-get install libssl-dev
+apt-get install libssl-dev -y
 # We use 'make menuconfig' to edit the .config file; install dependencies
 apt-get install libncurses5-dev -y
 
