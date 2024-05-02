@@ -92,6 +92,7 @@ fi
 apt-add-repository universe
 apt-get update
 apt-get install pkg-config -y
+apt-get install libssl-dev
 # We use 'make menuconfig' to edit the .config file; install dependencies
 apt-get install libncurses5-dev -y
 
@@ -109,10 +110,8 @@ DISTRIBUTION=$(lsb_release -is)
 # Needs to be lower case
 DISTRIBUTION="$(echo $DISTRIBUTION | tr '[A-Z]' '[a-z]')"
 OS_RELEASE=$(lsb_release -rs)
-MODULE_SYMVERS_URL=${SOURCE_TARGET}"linux-headers-"${KERNEL_VERSION}-${DISTRIBUTION}${OS_RELEASE}_$(uname -m)/kernel-${KERNEL_RELEASE}/Module.symvers
-
+MODULE_SYMVERS_URL=$(find ${SOURCE_TARGET}"linux-headers-"${KERNEL_VERSION}-${DISTRIBUTION}${OS_RELEASE}_$(uname -m) -name 'Module.symvers')
 echo $MODULE_SYMVERS_URL
-
 
 cd "$SOURCE_TARGET"
 echo "$PWD"
@@ -120,11 +119,19 @@ echo "$PWD"
 wget -N "$SOURCE_URL" -O public_sources.tbz2
 
 # l4t-sources is a tbz2 file
-tar -xvf public_sources.tbz2  Linux_for_Tegra/source/public/kernel_src.tbz2 --strip-components=3
+case $JETSON_L4T in
+    "36.2.0") tar -xvf public_sources.tbz2  Linux_for_Tegra/source/kernel_src.tbz2 --strip-components=2;;
+    *) tar -xvf public_sources.tbz2  Linux_for_Tegra/source/public/kernel_src.tbz2 --strip-components=3;;
+esac
 tar -xvf kernel_src.tbz2
 # Space is tight; get rid of the compressed kernel source
 rm -r kernel_src.tbz2
-cd kernel/kernel-"$KERNEL_RELEASE"
+KERNEL_PATH=kernel/kernel-"$KERNEL_RELEASE"
+case $JETSON_L4T in
+    "36.2.0") mv kernel/kernel-jammy-src "$KERNEL_PATH";;
+esac
+
+cd "$KERNEL_PATH"
 echo "$PWD"
 
 # Copy over the module symbols
